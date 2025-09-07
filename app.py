@@ -1,22 +1,36 @@
-# ------------------ Imports ------------------
+# main imports
 import streamlit as st
-from llama_cpp import Llama
 import os
+from llama_cpp import Llama
+from huggingface_hub import hf_hub_download
 
-# ------------------ Load LLaMA Model ------------------
-# Path to your local LLaMA GGML model
-LLAMA_MODEL_PATH = "./models/llama-2-7b.ggmlv3.q4_0.bin"
+# ------------------ Model Setup ------------------
+MODEL_DIR = "./models"
+MODEL_FILE = "llama-2-7b.ggmlv3.q4_0.bin"
+MODEL_PATH = os.path.join(MODEL_DIR, MODEL_FILE)
 
-if not os.path.exists(LLAMA_MODEL_PATH):
-    st.error(f"LLaMA model not found at {LLAMA_MODEL_PATH}. Please download and place it in the folder.")
-    st.stop()
+# Auto-download model from Hugging Face if missing
+if not os.path.exists(MODEL_PATH):
+    os.makedirs(MODEL_DIR, exist_ok=True)
+    st.info(f"Downloading LLaMA model to `{MODEL_PATH}` (may take several minutes)...")
+    try:
+        # Replace 'TheBloke' and the repo with the desired quantized model repo
+        MODEL_PATH = hf_hub_download(
+            repo_id="TheBloke/llama-2-7b-GGML",
+            filename=MODEL_FILE,
+            cache_dir=MODEL_DIR
+        )
+        st.success("Model downloaded successfully!")
+    except Exception as e:
+        st.error(f"Failed to download model automatically. Please download manually.\nError: {e}")
+        st.stop()
 
-llm = Llama(model_path=LLAMA_MODEL_PATH)
+# Load LLaMA model
+llm = Llama(model_path=MODEL_PATH)
 
-# ------------------ Function to get response ------------------
 def get_llama_response(prompt: str):
-    output = llm(prompt, max_tokens=200)
-    return output['choices'][0]['text']
+    response = llm(prompt, max_tokens=256)
+    return response['choices'][0]['text']
 
 # ------------------ Streamlit UI ------------------
 st.set_page_config(page_title="AI Chatbot by ASHISH", page_icon="🤖", layout="wide")
@@ -26,12 +40,11 @@ with st.sidebar:
     st.image("https://cdn-icons-png.flaticon.com/512/4712/4712109.png", width=80)
     st.title("💬 Ashish's AI Chatbot")
     st.markdown("---")
-
     st.subheader("⚡ About")
     st.write(
         """
-        Welcome to **Ashish’s AI Chatbot**, your intelligent virtual assistant  
-        designed to provide instant, accurate, and engaging responses.  
+        Welcome to **Ashish’s AI Chatbot**, powered by **LLaMA** local model.  
+        Instant, accurate, and private AI responses.  
 
         **Key Highlights**  
         - 💡 Insightful Responses  
@@ -40,14 +53,12 @@ with st.sidebar:
         - ⚡ Fast & Efficient  
         """
     )
-
     st.subheader("🎨 Theme")
     theme = st.radio("Choose theme:", ["Light", "Dark"], index=0)
-
     st.subheader("🛠 Options")
     if st.button("🧹 Clear Chat"):
         st.session_state.chat_history = []
-
+        st.experimental_rerun()
     st.markdown("---")
     st.caption("Developed by Ashish")
 
@@ -87,16 +98,11 @@ with st.container():
 
     # Input at bottom
     user_input = st.text_input("💭 Type your message:", key="input", placeholder="Ask me anything...")
-
     if st.button(" Submit ", use_container_width=True):
         if user_input.strip():
-            # Add user message
             st.session_state.chat_history.append(("user", user_input))
-
-            # Get LLaMA response
             response = get_llama_response(user_input)
             st.session_state.chat_history.append(("bot", response))
-
             st.experimental_rerun()
         else:
             st.warning("⚠️ Please enter a question.")
@@ -123,7 +129,7 @@ if theme == "Light":
         """,
         unsafe_allow_html=True,
     )
-elif theme == "Dark":
+else:
     st.markdown(
         """
         <style>
