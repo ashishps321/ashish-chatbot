@@ -1,6 +1,7 @@
 # main imports
-import streamlit as st
+
 import os
+import streamlit as st
 from llama_cpp import Llama
 from huggingface_hub import hf_hub_download
 
@@ -14,7 +15,6 @@ if not os.path.exists(MODEL_PATH):
     os.makedirs(MODEL_DIR, exist_ok=True)
     st.info(f"Downloading LLaMA model to `{MODEL_PATH}` (may take several minutes)...")
     try:
-        # Replace 'TheBloke' and the repo with the desired quantized model repo
         MODEL_PATH = hf_hub_download(
             repo_id="TheBloke/llama-2-7b-GGML",
             filename=MODEL_FILE,
@@ -24,6 +24,9 @@ if not os.path.exists(MODEL_PATH):
     except Exception as e:
         st.error(f"Failed to download model automatically. Please download manually.\nError: {e}")
         st.stop()
+
+# ------------------ Initialize LLaMA ------------------
+
 
 # Load LLaMA model
 llm = Llama(model_path=MODEL_PATH)
