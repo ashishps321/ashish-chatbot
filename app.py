@@ -1,34 +1,26 @@
 # main imports
-
 import os
 import streamlit as st
 from llama_cpp import Llama
 from huggingface_hub import hf_hub_download
 
 # ------------------ Model Setup ------------------
-MODEL_DIR = "./models"
+REPO_ID = "TheBloke/llama-2-7b-GGML"   # Change this if you want another model
 MODEL_FILE = "llama-2-7b.ggmlv3.q4_0.bin"
-MODEL_PATH = os.path.join(MODEL_DIR, MODEL_FILE)
 
-# Auto-download model from Hugging Face if missing
-if not os.path.exists(MODEL_PATH):
-    os.makedirs(MODEL_DIR, exist_ok=True)
-    st.info(f"Downloading LLaMA model to `{MODEL_PATH}` (may take several minutes)...")
-    try:
-        MODEL_PATH = hf_hub_download(
-            repo_id="TheBloke/llama-2-7b-GGML",
-            filename=MODEL_FILE,
-            cache_dir=MODEL_DIR
-        )
-        st.success("Model downloaded successfully!")
-    except Exception as e:
-        st.error(f"Failed to download model automatically. Please download manually.\nError: {e}")
-        st.stop()
+st.info("⏳ Downloading LLaMA model from Hugging Face Hub (first run may take a while)...")
+
+try:
+    MODEL_PATH = hf_hub_download(
+        repo_id=REPO_ID,
+        filename=MODEL_FILE
+    )
+    st.success("✅ Model downloaded successfully!")
+except Exception as e:
+    st.error(f"❌ Failed to download model from Hugging Face Hub.\nError: {e}")
+    st.stop()
 
 # ------------------ Initialize LLaMA ------------------
-
-
-# Load LLaMA model
 llm = Llama(model_path=MODEL_PATH)
 
 def get_llama_response(prompt: str):
@@ -46,7 +38,7 @@ with st.sidebar:
     st.subheader("⚡ About")
     st.write(
         """
-        Welcome to **Ashish’s AI Chatbot**, powered by **LLaMA** local model.  
+        Welcome to **Ashish’s AI Chatbot**, powered by **LLaMA** model from Hugging Face Hub.  
         Instant, accurate, and private AI responses.  
 
         **Key Highlights**  
