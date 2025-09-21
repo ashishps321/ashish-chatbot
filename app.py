@@ -17,19 +17,18 @@ if not HF_API_TOKEN:
 @st.cache_resource(show_spinner=True)
 def load_generator():
     generator = pipeline(
-        "text-generation",
-        model="google/flan-t5-small",  # CPU-friendly
-        device=-1,                      # CPU
-        use_auth_token=HF_API_TOKEN,
-        max_new_tokens=200
+        "text2text-generation",  # FLAN-T5 is seq2seq
+        model="google/flan-t5-small",
+        device=-1,               # CPU
+        use_auth_token=HF_API_TOKEN
     )
     return generator
 
 generator = load_generator()
 
-# ------------------ Helper ------------------
+# ------------------ Helper Function ------------------
 def get_response(prompt):
-    result = generator(prompt)
+    result = generator(prompt, max_new_tokens=200)
     return result[0]["generated_text"]
 
 # ------------------ Session State ------------------
