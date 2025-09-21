@@ -1,26 +1,33 @@
 # ------------------ Imports ------------------
 import streamlit as st
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 import torch
 
 # ------------------ Model Setup ------------------
-MODEL_NAME = "mistralai/Mistral-3B-Instruct-v0.1"
+MODEL_NAME = "TheBloke/Vicuna-7B-1.1-HF-4bit"  # CPU-friendly quantized model
 
 @st.cache_resource(show_spinner=True)
 def load_model():
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-    model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, torch_dtype=torch.float16)
-    model.eval()
-    return tokenizer, model
+    model = AutoModelForCausalLM.from_pretrained(
+        MODEL_NAME,
+        device_map="auto",          # Automatically uses CPU
+        torch_dtype=torch.float16,  # Use float16 for lower RAM
+    )
+    generator = pipeline(
+        "text-generation",
+        model=model,
+        tokenizer=tokenizer,
+        max_new_tokens=200
+    )
+    return generator
 
-tokenizer, model = load_model()
+generator = load_model()
 
 # ------------------ Helper Function ------------------
 def get_response(prompt):
-    inputs = tokenizer(prompt, return_tensors="pt")
-    with torch.no_grad():
-        outputs = model.generate(**inputs, max_new_tokens=150)
-    return tokenizer.decode(outputs[0], skip_special_tokens=True)
+    result = generator(prompt)
+    return result[0]["generated_text"]
 
 # ------------------ Session State ------------------
 if "chat_history" not in st.session_state:
@@ -34,35 +41,31 @@ with st.sidebar:
     st.image("https://cdn-icons-png.flaticon.com/512/4712/4712109.png", width=80)
     st.title("💬 ApkaApna AI Chatbot")
     st.markdown("---")
-
     st.subheader("⚡ About")
     st.write(
-        "Welcome to **ApkaApna AI Chatbot**, your intelligent virtual assistant " 
+        "Welcome to **ApkaApna AI Chatbot**, your intelligent virtual assistant "
         "designed to provide instant, accurate, and engaging responses."
     )
-
     st.subheader("✨ Key Highlights")
     st.markdown(
         """
-        ✅ **Smart & Reliable** – Accurate answers powered by Mistral 3B  
+        ✅ **Smart & Reliable** – Accurate answers powered by Vicuna 7B  
         💬 **Human-like Chat** – Natural and engaging conversations  
-        ⚡ **Fast & Responsive** – Quick replies for smooth experience  
+        ⚡ **Fast & Responsive** – Quick replies (~2-3s per query)  
         🎯 **Personalized Help** – Tailored responses just for you  
         🔒 **Secure & Private** – Your chats stay safe and confidential  
         🌐 **Always Available** – 24/7 assistance, anytime you need  
         """
     )
-
     st.subheader("🎨 Theme")
     theme = st.radio("Choose Theme:", ["Light", "Dark"], index=0)
-
     st.subheader("🛠 Options")
     if st.button("🧹 Clear Chat"):
         st.session_state.chat_history = []
     st.markdown("---")
     st.caption("🚀 Developed by Ashish")
 
-# ------------------ CSS ------------------
+# ------------------ CSS for Chat Style ------------------
 if theme == "Light":
     st.markdown("""
     <style>
