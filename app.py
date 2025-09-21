@@ -2,25 +2,24 @@
 import streamlit as st
 from transformers import pipeline
 import os
+from dotenv import load_dotenv
 
-# ------------------ Load Hugging Face API Token ------------------
-HF_API_TOKEN = None
-if "HF_API_TOKEN" in st.secrets:
-    HF_API_TOKEN = st.secrets["HF_API_TOKEN"]
-else:
-    HF_API_TOKEN = os.getenv("HF_API_TOKEN")
+# ------------------ Load .env ------------------
+load_dotenv()
+HF_API_TOKEN = os.getenv("HF_API_TOKEN")
 
+# ------------------ Check Token ------------------
 if not HF_API_TOKEN:
-    st.error("Hugging Face API token not found. Add it to Streamlit Secrets or .env")
+    st.error("Hugging Face API token not found. Add it to .env or Streamlit Secrets.")
     st.stop()
 
-# ------------------ Load API Pipeline ------------------
+# ------------------ Load Model ------------------
 @st.cache_resource(show_spinner=True)
 def load_generator():
     generator = pipeline(
         "text-generation",
-        model="tiiuae/falcon-7b-instruct",
-        device=-1,  # CPU
+        model="google/flan-t5-small",  # CPU-friendly
+        device=-1,                      # CPU
         use_auth_token=HF_API_TOKEN,
         max_new_tokens=200
     )
@@ -28,7 +27,7 @@ def load_generator():
 
 generator = load_generator()
 
-# ------------------ Helper Function ------------------
+# ------------------ Helper ------------------
 def get_response(prompt):
     result = generator(prompt)
     return result[0]["generated_text"]
@@ -53,12 +52,12 @@ with st.sidebar:
     st.subheader("✨ Key Highlights")
     st.markdown(
         """
-        ✅ **Smart & Reliable** – Accurate answers powered by Falcon-7B API  
-        💬 **Human-like Chat** – Natural and engaging conversations  
-        ⚡ **Fast & Responsive** – Quick replies (~1-2s per query)  
-        🎯 **Personalized Help** – Tailored responses just for you  
-        🔒 **Secure & Private** – Your chats stay safe and confidential  
-        🌐 **Always Available** – 24/7 assistance, anytime you need  
+        ✅ **Smart & Reliable** – Powered by FLAN-T5-Small  
+        💬 **Human-like Chat** – Natural conversations  
+        ⚡ **Fast & Responsive** – CPU-friendly  
+        🎯 **Personalized Help** – Tailored responses  
+        🔒 **Secure & Private** – Chats stay confidential  
+        🌐 **Always Available** – 24/7 assistance  
         """
     )
     st.subheader("🎨 Theme")
@@ -69,7 +68,7 @@ with st.sidebar:
     st.markdown("---")
     st.caption("🚀 Developed by Ashish")
 
-# ------------------ CSS for Chat Style ------------------
+# ------------------ CSS ------------------
 st.markdown("""
 <style>
 body { font-family: 'Segoe UI', sans-serif; }
@@ -89,7 +88,7 @@ body { font-family: 'Segoe UI', sans-serif; }
 </style>
 """, unsafe_allow_html=True)
 
-# ------------------ Main Chat Area ------------------
+# ------------------ Main Chat ------------------
 st.markdown('<div class="title">🤖 ApkaApna AI Chatbot</div>', unsafe_allow_html=True)
 st.markdown('<div class="tagline">“Ask anything, get instant answers – powered by AI & Developed by ABSingh”</div>', unsafe_allow_html=True)
 st.markdown('<div class="chat-container">', unsafe_allow_html=True)
