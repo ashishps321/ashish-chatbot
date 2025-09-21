@@ -4,15 +4,15 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 import torch
 
 # ------------------ Model Setup ------------------
-MODEL_NAME = "TheBloke/Vicuna-7B-1.1-HF-4bit"  # CPU-friendly quantized model
+MODEL_NAME = "tiiuae/falcon-7b-instruct"  # CPU-friendly
 
 @st.cache_resource(show_spinner=True)
 def load_model():
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     model = AutoModelForCausalLM.from_pretrained(
         MODEL_NAME,
-        device_map="auto",          # Automatically uses CPU
-        torch_dtype=torch.float16,  # Use float16 for lower RAM
+        device_map="auto",          # CPU mode
+        torch_dtype=torch.float16,  # lower RAM usage
     )
     generator = pipeline(
         "text-generation",
@@ -49,9 +49,9 @@ with st.sidebar:
     st.subheader("✨ Key Highlights")
     st.markdown(
         """
-        ✅ **Smart & Reliable** – Accurate answers powered by Vicuna 7B  
+        ✅ **Smart & Reliable** – Accurate answers powered by Falcon-7B  
         💬 **Human-like Chat** – Natural and engaging conversations  
-        ⚡ **Fast & Responsive** – Quick replies (~2-3s per query)  
+        ⚡ **Fast & Responsive** – Quick replies (~1-2s per query)  
         🎯 **Personalized Help** – Tailored responses just for you  
         🔒 **Secure & Private** – Your chats stay safe and confidential  
         🌐 **Always Available** – 24/7 assistance, anytime you need  
